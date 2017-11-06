@@ -3,7 +3,7 @@ let socketClusterClient = require('socketcluster-client');
 let cluster = require('cluster');
 let os = require('os');
 
-let testStartDelay = 5000;
+let testCooldownDelay = Number(argv.cooldown || 5000);
 
 let serverHostname = argv.hostname || 'localhost';
 let serverPort = Number(argv.port || 8000);
@@ -46,7 +46,7 @@ if (cluster.isMaster) {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve();
-      }, testStartDelay);
+      }, testCooldownDelay);
     });
   })
   .then(() => {
