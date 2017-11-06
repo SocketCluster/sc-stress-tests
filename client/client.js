@@ -11,10 +11,11 @@ let numClients = Number(argv.clients || 1000);
 // The test type.
 let test = argv.test || 'many-subscribers';
 
-let cpuCount = os.cpus().length - 1;
+let cpuCount = Number(argv.cpus || os.cpus().length);
 let numClientsPerCPU = Math.round(numClients / cpuCount);
 
 if (cluster.isMaster) {
+  console.log('Test client CPUs used:', cpuCount);
   console.log('serverHostname:', serverHostname);
   console.log('serverPort:', serverPort);
   console.log('numClients:', numClients);
