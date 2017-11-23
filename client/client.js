@@ -58,33 +58,11 @@ if (cluster.isMaster) {
 
     if (test === 'many-subscribers') {
       console.log(`Starting the ${test} test.`);
-      var workerResultPromises = [];
-      workerList.forEach((worker) => {
-        workerResultPromises.push(
-          new Promise((resolve) => {
-            worker.once('message', (message) => {
-              if (message.type == 'result') {
-                resolve(message.data);
-              }
-            });
-          })
-        );
-      });
 
-      console.log('Publishing a single message string to the testChannel');
-      controlSocket.publish('testChannel', 'hello');
-
-      Promise.all(workerResultPromises)
-      .then((results) => {
-        var resultsSum = 0;
-        results.forEach((receivedByWorker) => {
-          resultsSum += receivedByWorker;
-        });
-        console.log(`Published message was received by ${resultsSum} clients`);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+      setInterval(() => {
+        console.log('Publishing a single message string to the testChannel');
+        controlSocket.publish('testChannel', 'hello' + Math.round(Math.random() * 1000));
+      }, 1000);
     }
   })
   .catch((err) => {
@@ -110,22 +88,9 @@ if (cluster.isMaster) {
 
   if (test === 'many-subscribers') {
     let subscribePromises = [];
-    let watchPromises = [];
-
-    var receivedCount = 0;
 
     socketList.forEach((socket) => {
       let testChannel = socket.subscribe('testChannel');
-      watchPromises.push(
-        new Promise((resolve, reject) => {
-          testChannel.watch((data) => {
-            if (data == 'hello') {
-              receivedCount++;
-              resolve();
-            }
-          });
-        })
-      );
       subscribePromises.push(
         new Promise((resolve, reject) => {
           testChannel.once('subscribe', () => {
@@ -142,14 +107,6 @@ if (cluster.isMaster) {
     Promise.all(subscribePromises)
     .then((results) => {
       process.send({type: 'success'});
-    })
-    .catch((err) => {
-      process.send({type: 'error', message: err.message});
-    });
-
-    Promise.all(watchPromises)
-    .then((results) => {
-      process.send({type: 'result', data: receivedCount});
     })
     .catch((err) => {
       process.send({type: 'error', message: err.message});
